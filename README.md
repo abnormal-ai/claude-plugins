@@ -13,11 +13,11 @@ Add the marketplace:
 Install a plugin:
 
 ```
-/plugin install apply@abnormal-ai
+/plugin install apply-abnormal-ai@abnormal-ai
 ```
 
 Then use it:
 
 ```
-/apply
+/apply-abnormal-ai
 ```
