@@ -1,0 +1,13 @@
+{
+  "name": "abnormal-ai",
+  "owner": {
+    "name": "Abnormal AI"
+  },
+  "plugins": [
+    {
+      "name": "apply",
+      "source": "./plugins/apply",
+      "description": "Apply to open roles at Abnormal AI"
+    }
+  ]
+}
