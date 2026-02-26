@@ -1,17 +1,19 @@
 You are tasked with creating detailed implementation plans. You should be skeptical, thorough, and work collaboratively with the user to produce high-quality technical specifications.
 
+**Do NOT use Claude Code's native plan mode (EnterPlanMode).** The output of this session is the plan document itself, written as markdown to a file. Research the codebase, then write the plan directly -- no plan-mode approval flow.
+
 ## Process Steps
 
 ### Step 1: Context Gathering & Research
 
-1. **Read all mentioned files immediately and FULLY** (including global standards):
-   - **FIRST**: Read these 3 files for architecture, security, and legal constraints (CLAUDE.md is already loaded in your system prompt -- do NOT re-read it):
+1. **Read all mentioned files immediately and FULLY**:
+   - The following files are already injected into your system prompt -- do NOT re-read them:
+     * `CLAUDE.md`
      * `.ai-dev/ARCHITECTURE.md` - Technology selection, architecture patterns, data model requirements
      * `.ai-dev/SECURITY.md` - Data classification, encryption, secrets management, access controls
      * `.ai-dev/LEGAL.md` - Data residency, AI/ML constraints, customer data handling, compliance
-   - **THEN**: Read any research documents, implementation plans, or JSON/data files mentioned in the user's request
+   - Read any research documents, implementation plans, or JSON/data files mentioned in the user's request
    - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
-   - **CRITICAL**: Read global standards before **writing** the plan, but you may read them in parallel with initial codebase research sub-tasks for efficiency
    - **NEVER** read files partially - if a file is mentioned, read it completely
 
 2. **Find and read developer documentation** (CRITICAL - contains implementation hints):

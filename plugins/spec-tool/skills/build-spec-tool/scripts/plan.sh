@@ -3,13 +3,12 @@ set -e
 
 # plan -- Launch Claude Code with spec-driven planning methodology
 #
-# This script reads .ai-dev/PLAN.md (the spec template) and .ai-dev/SYSTEM_PROMPT.md
-# (the planning methodology), combines them into a single system prompt, and launches
-# Claude Code with that context injected.
+# This script reads all .ai-dev/ files and the planning methodology, combines them
+# into a single system prompt, and launches Claude Code with that context injected.
 #
-# The system prompt contains the full planning methodology: research steps, guidelines,
-# sub-task spawning best practices, and success criteria patterns. The PLAN.md template
-# is embedded within it via the {{TECH_PLAN_TEMPLATE}} placeholder.
+# Injected into the system prompt:
+#   - SYSTEM_PROMPT.md (planning methodology) with PLAN.md template embedded
+#   - ARCHITECTURE.md, SECURITY.md, LEGAL.md (so the planner doesn't need to read them)
 #
 # Usage:
 #   bin/plan "description of feature to plan"
@@ -18,31 +17,47 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-PLAN_FILE="$REPO_ROOT/.ai-dev/PLAN.md"
-SYSTEM_PROMPT_FILE="$REPO_ROOT/.ai-dev/SYSTEM_PROMPT.md"
+AI_DEV_DIR="$REPO_ROOT/.ai-dev"
+PLAN_FILE="$AI_DEV_DIR/PLAN.md"
+SYSTEM_PROMPT_FILE="$AI_DEV_DIR/SYSTEM_PROMPT.md"
+ARCHITECTURE_FILE="$AI_DEV_DIR/ARCHITECTURE.md"
+SECURITY_FILE="$AI_DEV_DIR/SECURITY.md"
+LEGAL_FILE="$AI_DEV_DIR/LEGAL.md"
 
 # Verify required files exist
-if [ ! -f "$PLAN_FILE" ]; then
-  echo "Error: Plan template not found at $PLAN_FILE"
-  echo "Run /build-spec-tool to generate .ai-dev/ files first."
-  exit 1
-fi
-
-if [ ! -f "$SYSTEM_PROMPT_FILE" ]; then
-  echo "Error: System prompt not found at $SYSTEM_PROMPT_FILE"
-  echo "Run /build-spec-tool to generate .ai-dev/ files first."
-  exit 1
-fi
+for f in "$PLAN_FILE" "$SYSTEM_PROMPT_FILE"; do
+  if [ ! -f "$f" ]; then
+    echo "Error: Required file not found: $f"
+    echo "Run /build-spec-tool to generate .ai-dev/ files first."
+    exit 1
+  fi
+done
 
 # Build the full system prompt:
-# 1. Read the planning methodology from SYSTEM_PROMPT.md
-# 2. Read the PLAN.md template
-# 3. Replace the {{TECH_PLAN_TEMPLATE}} placeholder with the actual template content
-PLAN_CONTENT=$(cat "$PLAN_FILE")
-SYSTEM_PROMPT=$(cat "$SYSTEM_PROMPT_FILE")
+# 1. Start with the planning methodology from SYSTEM_PROMPT.md
+# 2. Embed the PLAN.md template via {{TECH_PLAN_TEMPLATE}} placeholder
+# 3. Append ARCHITECTURE.md, SECURITY.md, LEGAL.md so they're pre-loaded
+#
+# Use awk with file reading (NR==FNR) to handle multiline content safely,
+# since passing multiline strings via -v breaks on newlines.
+FULL_PROMPT=$(awk '
+  NR==FNR { plan = plan (NR>1 ? "\n" : "") $0; next }
+  { gsub(/\{\{TECH_PLAN_TEMPLATE\}\}/, plan); print }
+' "$PLAN_FILE" "$SYSTEM_PROMPT_FILE")
 
-# Use awk for the replacement since sed struggles with multiline content
-FULL_PROMPT=$(awk -v plan="$PLAN_CONTENT" '{gsub(/\{\{TECH_PLAN_TEMPLATE\}\}/, plan); print}' <<< "$SYSTEM_PROMPT")
+# Append .ai-dev/ knowledge files so the planner has them pre-loaded
+for f in "$ARCHITECTURE_FILE" "$SECURITY_FILE" "$LEGAL_FILE"; do
+  if [ -f "$f" ]; then
+    basename=$(basename "$f")
+    FULL_PROMPT="$FULL_PROMPT
+
+---
+
+# .ai-dev/$basename
+
+$(cat "$f")"
+  fi
+done
 
 # Launch Claude Code with the combined system prompt
 claude --append-system-prompt "$FULL_PROMPT" "$@"
