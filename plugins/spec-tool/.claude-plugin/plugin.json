@@ -1,0 +1,5 @@
+{
+  "name": "spec-tool",
+  "description": "Bootstrap any monorepo with spec-driven development: generates .ai-dev/ knowledge files, a planning template, review agent, and CLI wrapper",
+  "version": "1.0.0"
+}

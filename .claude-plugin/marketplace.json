@@ -5,9 +5,14 @@
   },
   "plugins": [
     {
-      "name": "apply-abnormal-ai",
-      "source": "./plugins/apply-abnormal-ai",
-      "description": "Apply to open roles at Abnormal AI"
+      "name": "careers-abnormal-ai",
+      "source": "./plugins/careers-abnormal-ai",
+      "description": "Explore engineering roles at Abnormal AI that match your interests and stack"
+    },
+    {
+      "name": "spec-tool",
+      "source": "./plugins/spec-tool",
+      "description": "Bootstrap any monorepo with spec-driven development: generates .ai-dev/ knowledge files, a planning template, review agent, and CLI wrapper"
     }
   ]
 }
