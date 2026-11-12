@@ -40,9 +40,22 @@ done
 #
 # Use awk with file reading (NR==FNR) to handle multiline content safely,
 # since passing multiline strings via -v breaks on newlines.
+#
+# The template is spliced in with index/substr rather than gsub: in a gsub
+# replacement "&" stands for the matched text, so every "&" in PLAN.md (the
+# default template has "Privacy & Security Checklist") would come out as
+# "{{TECH_PLAN_TEMPLATE}}", and backslashes would be eaten.
 FULL_PROMPT=$(awk '
+  BEGIN { tag = "{{TECH_PLAN_TEMPLATE}}" }
   NR==FNR { plan = plan (NR>1 ? "\n" : "") $0; next }
-  { gsub(/\{\{TECH_PLAN_TEMPLATE\}\}/, plan); print }
+  {
+    out = ""; line = $0
+    while ((i = index(line, tag)) > 0) {
+      out = out substr(line, 1, i - 1) plan
+      line = substr(line, i + length(tag))
+    }
+    print out line
+  }
 ' "$PLAN_FILE" "$SYSTEM_PROMPT_FILE")
 
 # Append .ai-dev/ knowledge files so the planner has them pre-loaded
